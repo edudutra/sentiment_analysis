@@ -2,6 +2,7 @@ from googletrans import Translator
 import json
 from glob import glob
 import os
+import re
 
 translator = Translator()
 
@@ -45,14 +46,22 @@ for candidate in all_tweets.items():
              t['id'] if 'retweeted_status' not in t else t['retweeted_status']['id']) 
             for t in candidate[1]
             ]
-    
-to_translate = list(set(to_translate))
 
-translations = []
+def clear_text(text):
+    text = re.sub(r'http\S+', '', text)
+    text = re.sub(r'@([A-Za-z0-9_]+)', '', text)
+    return text
+
+
+    
+to_translate = [clear_text(t[0]) for t in list(set(to_translate))]
+
+
+translations = translator.translate(to_translate, src='pt', dest='en')
 
 for item in to_translate:
     print(item[0])
-    translation = translator.translate(item[0], src='pt', dest='en')
+    translation = translator.translate(clear_text(item[0]), src='pt', dest='en')
     translations.append(translation)
     
 x = translator.translate("""Até às eleições, as redes sociais serão um show memes protagonizados por pseudos jornalistas! 
