@@ -49,20 +49,38 @@ for candidate in all_tweets.items():
 
 def clear_text(text):
     text = re.sub(r'http\S+', '', text)
-    text = re.sub(r'@([A-Za-z0-9_]+)', '', text)
+    re.sub(r'[^{}]+'.format(string.printable + 'áéíóúàèìòùâêîôûãõªº°äëïöüÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕªº°ÄËÏÖÜçÇ'), '', text)
     return text
 
 
     
-to_translate = [clear_text(t[0]) for t in list(set(to_translate))]
+to_translate_clear = [clear_text(t[0]) for t in list(set(to_translate))]
 
 
-translations = translator.translate(to_translate, src='pt', dest='en')
+translations = translator.translate(to_translate_clear, src='pt', dest='en')
 
-for item in to_translate:
-    print(item[0])
-    translation = translator.translate(clear_text(item[0]), src='pt', dest='en')
+translations = []
+
+for i, item in enumerate(to_translate_clear):
+    print(i)
+    translation = translator.translate(item, src='pt', dest='en')
     translations.append(translation)
+
+to_translate_clear[72].encode('ascii', 'replace')
+
+
+'{}'.format(x)
+
+translator.translate('{}'.format(to_translate_clear[72].encode('ascii', 'replace')), src='pt', dest='en').text
+
+from remove_emoji import remove_emoji
+
+remove_emoji(to_translate_clear[72])
+
+import string
+
+re.sub(r'[^{}]+'.format(string.printable + 'áéíóúàèìòùâêîôûãõªº°äëïöüÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕªº°ÄËÏÖÜçÇ'), '', to_translate_clear[72])
+
     
 x = translator.translate("""Até às eleições, as redes sociais serão um show memes protagonizados por pseudos jornalistas! 
 Tem historiador da Wikipédia, Robô psicográfico, até "Cristo"refugiou- se para não olhar esta vergonha!
