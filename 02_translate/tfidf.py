@@ -97,12 +97,12 @@ df['rank'] = df.groupby(['candidate'])['frequency'].rank(ascending=False)
 df['total_words'] = df.groupby(['candidate']).frequency.transform(np.sum)
 df['n_containing'] = df.groupby(['word']).candidate.transform(np.size)
 df['tf'] = df['frequency']/df.total_words 
-df['idf'] = np.log( 8 / (1 + df.n_containing) )
+df['idf'] = np.log( 8 / df.n_containing )
 df['tfidf'] = df.tf*df.idf
 
 
 
-df[(df['rank'] > 0) & (df['tfidf'] != 0)][['candidate', 'word', 'frequency', 'rank', 'tfidf']].sort_values([ 'tfidf', 'candidate'], ascending=[False, True]).head(30)
+amoedo = df[(df['candidate'] == 'amoedo') &(df['rank'] > 0) & (df['tfidf'] != 0)].sort_values([ 'tfidf', 'candidate'], ascending=[False, True]).head(30)
 
 
 #df['rank'] = 
@@ -116,10 +116,10 @@ def to_multidict(items):
         fullTermsDict.add(item[0], item[1])
     return fullTermsDict
 
-to_multidict(freqs.head(5).values)  
+#to_multidict(freqs.head(5).values)  
 
-for item in freqs.head(5).values:
-    print('{}: {}'.format(item[0], item[1]))
+#for item in freqs.head(5).values:
+#    print('{}: {}'.format(item[0], item[1]))
 
 brazil_mask = np.array(Image.open("brazil_mask.png"))
 
@@ -139,3 +139,4 @@ freqs.head(5).values
 frequencies = [{x[0] : x[1]} for x in freqs.values]
 sorted(frequencies.items(), key=itemgetter(1), reverse=True)
 wordcloud.fit_words(frequencies)
+
