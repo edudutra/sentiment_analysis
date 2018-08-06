@@ -23,10 +23,10 @@ import matplotlib.pyplot as plt
 #%% Define limits for negative and positive sentiment
 
 NEGATIVE_START = .0
-NEGATIVE_END = .3
+NEGATIVE_END = .25
 
-POSITIVE_START = .7
-POSITIVE_END = 1.
+POSITIVE_START = .4
+POSITIVE_END = .5
 
 #%% Load Files
 candidates = [{'candidate' : candidato.split('_')[1].split('.')[0], 'filename' : candidato, 'type': candidato.split('.')[3]} for candidato in glob('../data/sentiment/sentimento*')]
@@ -55,8 +55,8 @@ for candidate in candidates:
 #%% Join texts by sentiment
 
 for candidate in candidates:
-    candidate['text_positive'] = '\n'.join( [tweet['full_text'] for tweet in candidate['data'] if tweet['score'] >= POSITIVE_START and tweet['score'] <= POSITIVE_END ] )
-    candidate['text_negative'] = '\n'.join( [tweet['full_text'] for tweet in candidate['data'] if tweet['score'] >= NEGATIVE_START and tweet['score'] <= NEGATIVE_END ] )
+    candidate['text_positive'] = '\n'.join( [tweet['full_text'] for tweet in candidate['data'] if tweet['score'] >=POSITIVE_START and tweet['score'] <= POSITIVE_END ] )
+    candidate['text_negative'] = '\n'.join( [tweet['full_text'] for tweet in candidate['data'] if tweet['score'] > NEGATIVE_START and tweet['score'] <= NEGATIVE_END ] )
     candidate['text'] = '\n'.join( [tweet['full_text'] for tweet in candidate['data']] )
 
 
@@ -78,8 +78,8 @@ def calculate_score_palavras(data):
             yield key, sum(temp_list)/len(temp_list)
            
     score_palavras = list(accumulate(score_palavras_full))
-    score_palavras_neg = list(accumulate([tweet for tweet in score_palavras_full if tweet[1] >= NEGATIVE_START and tweet[1] <= NEGATIVE_END]))
-    score_palavras_pos = list(accumulate([tweet for tweet in score_palavras_full if tweet[1] >= POSITIVE_START and tweet[1] <= POSITIVE_END]))
+    score_palavras_neg = list(accumulate([tweet for tweet in score_palavras_full if tweet[1] > NEGATIVE_START and tweet[1] <= NEGATIVE_END]))
+    score_palavras_pos = list(accumulate([tweet for tweet in score_palavras_full if tweet[1] > POSITIVE_START and tweet[1] <= POSITIVE_END]))
 
     return score_palavras, score_palavras_pos, score_palavras_neg
 
@@ -99,8 +99,8 @@ def generate_wordclouds(candidate):
     for score in scores.items():
         colors[score[0]] = SimpleGroupedColorFunc({p[0] : color_to_use[math.floor(p[1]*9.99)] for p in score[1]}, default_color)
 
-    wordcloud = WordCloud(width=1200, height=1200, background_color="white", mask=brazil_mask,
-               stopwords=stopwords_pt)
+        wordcloud = WordCloud(width=1200, height=1200, background_color="white", mask=brazil_mask,
+                   stopwords=stopwords_pt, font_path='/Library/Fonts/Times New Roman.ttf')
 
 
     for text in texts.items():

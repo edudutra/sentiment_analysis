@@ -1,14 +1,17 @@
+# -*- coding: utf-8 -*-
+
 from googletrans import Translator
 import json
 from glob import glob
 import os
 import re
+import string
 
 translator = Translator()
 
-translation = translator.translate(['Oi.', 'Bom Dia', 'Como vai'], src='pt', dest='en')
-print(translation.extra_data)
-translator.translate('안녕하세요.', dest='ja')
+#translation = translator.translate(['Oi.', 'Bom Dia', 'Como vai'], src='pt', dest='en')
+#print(translation.extra_data)
+#translator.translate('안녕하세요.', dest='ja')
 #translator.translate('veritas lux mea', src='la')
 
 translations = translator.translate(['Oi.', 'Bom Dia', 'Como vai'], src='pt', dest='en')
@@ -29,7 +32,7 @@ candidates = {
     
 all_tweets = dict({})
 
-for file in glob('../data/eleicoes/**/**'):
+for file in glob('../data/eleicoes/2018070/**'):
     print(file)
     filename = os.path.basename(file)
     tweets = []
@@ -38,10 +41,11 @@ for file in glob('../data/eleicoes/**/**'):
             tweet = json.loads(line)
             tweets.append(tweet)
     all_tweets[candidates[filename]] = all_tweets.get(candidates[filename], []) + tweets
+    #break
 
-
+to_translate = []
 for candidate in all_tweets.items():
-    to_translate = [
+    to_translate = to_translate + [
             (t['full_text'] if 'retweeted_status' not in t else t['retweeted_status']['full_text'], 
              t['id'] if 'retweeted_status' not in t else t['retweeted_status']['id']) 
             for t in candidate[1]
@@ -49,67 +53,40 @@ for candidate in all_tweets.items():
 
 def clear_text(text):
     text = re.sub(r'http\S+', '', text)
-    re.sub(r'[^{}]+'.format(string.printable + 'áéíóúàèìòùâêîôûãõªº°äëïöüÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕªº°ÄËÏÖÜçÇ'), '', text)
+    text = re.sub(r'[^{}]+'.format(string.printable + 'áéíóúàèìòùâêîôûãõªº°äëïöüÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕªº°ÄËÏÖÜçÇ'), '', text)
+    text = re.sub(r'@([A-Za-z0-9_]+)', '', text)          
+    text = re.sub(r' +', ' ', text)
     return text
-
 
     
 to_translate_clear = [clear_text(t[0]) for t in list(set(to_translate))]
 
 
-translations = translator.translate(to_translate_clear, src='pt', dest='en')
+#translations = translator.translate(to_translate_clear[336], src='pt', dest='en')
 
 translations = []
 
 for i, item in enumerate(to_translate_clear):
-    print(i)
-    translation = translator.translate(item, src='pt', dest='en')
-    translations.append(translation)
+    print('{}/{}'.format(i, len(to_translate_clear)))
+    try:
+        translation = translator.translate(item, src='pt', dest='en')
+        translations.append(translation)
+    except ValueError:
+        print('Erro {}'.format(i))
+        translations.append(None)
 
-to_translate_clear[72].encode('ascii', 'replace')
-
-
-'{}'.format(x)
-
-translator.translate('{}'.format(to_translate_clear[72].encode('ascii', 'replace')), src='pt', dest='en').text
-
-from remove_emoji import remove_emoji
-
-remove_emoji(to_translate_clear[72])
-
-import string
-
-re.sub(r'[^{}]+'.format(string.printable + 'áéíóúàèìòùâêîôûãõªº°äëïöüÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕªº°ÄËÏÖÜçÇ'), '', to_translate_clear[72])
-
-    
-x = translator.translate("""Até às eleições, as redes sociais serão um show memes protagonizados por pseudos jornalistas! 
-Tem historiador da Wikipédia, Robô psicográfico, até "Cristo"refugiou- se para não olhar esta vergonha!
-#BolsonaroNaGloboNews #SomosTodosBolsonaro""", src='pt', dest='en')
-
-
-
-# copy all files into one per candidate, with human readable name
-for candidate in candidates:
-    with open('../data/concat/{}.json'.format(candidate[0]), 'w') as outfile:
-        for file in glob('../data/eleicoes/**/{}'.format(candidate[0])):
-            with open(file) as f:
-                for line in f:
-                    tweet = json.loads(line)
-                    tweets.append(tweet)
-                    
-                    if 'retweeted_status' in tweet:
-                        tweet = tweet['retweeted_status']
-                    if not any(d['id'] == tweet['id'] for d in translations):
-                        translations.append({
-                                    'id' : tweet['id'], 
-                                    'full_text': tweet['full_text']
-                                })
-
-    
-    for candidate in candidates:
-        translations = read_file(candidate)
-        translations = clear_text(translations)
-        print_size(translations)
-        translations = translate_file(translations)
-        write_files(candidate, translations)
+count = 0
+erros = [i for i, t in enumerate(translations) if t is None]
+while len(erros) > 0:
+    count = count + 1
+    print('Tentativa {} - Erros {}'.format(count, len(erros)))
+    for i in erros:
+        print('{}/{}'.format(i,len(erros)))
+        try:
+            translations[i] = translator.translate(to_translate_clear[i], src='pt', dest='en')
+        except ValueError:
+            print('Erro {}'.format(i))
+    erros = [i for i, t in enumerate(translations) if t is None]
+            
+            
         
