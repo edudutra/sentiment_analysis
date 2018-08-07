@@ -23,6 +23,7 @@ import numpy as np
 import pandas as pd
 import multidict
 import matplotlib.pyplot as plt
+import os
 
 
 # Define limits for negative and positive sentiment
@@ -33,6 +34,13 @@ NEGATIVE_END = .25
 POSITIVE_START = .75
 POSITIVE_END = 1.
 
+
+files = glob('../data/sentiment/sentimento*.csv')
+dfs = [pd.read_csv(fp, sep=';',quotechar='"', header=None, names=['sentiment', 'tweet', 'tweet_english', 'columns', 'negative', 'neutral', 'positive', 'compound']).assign(candidate=os.path.basename(fp).split('.')[0].split('_')[1]) for fp in files]
+df_total = pd.concat(dfs, ignore_index=True)
+print (df)
+
+dfs = pd.read_csv(files[0], sep=';',quotechar='"') 
 
 # exclude the tweets with the following terms
 exclude_terms = [r'\bcuando\b', r'\by\b', r'\ben\b', r'\bla\b', r'\blas\b', r'\bpaula amoedo\b', r'\bsporting\b', r'\blo\b', r'\byo\b']
@@ -162,3 +170,13 @@ for item in sentiment_dataframes.items():
             wordcloud.to_file('../imagens/tfidf_{}_{}_start_{}.png'.format(candidate['candidate'], item[0], start))
 
 
+
+df = sentiment_dataframes['negative']
+df['rank'] = df[df['tfidf'] != 0].groupby(['candidate'])['frequency'].rank(ascending=False)
+df_plt = df[(df['rank'] <= 15) & (df['tfidf'] != 0)].sort_values([ 'candidate', 'frequency'], ascending=[True, False])[['candidate', 'word', 'frequency']]
+
+df_pivot = pd.pivot_table(df_plt, values='frequency', columns=['candidate'], index=['word'], aggfunc=np.sum)
+ax = df_pivot.plot(kind='barh', subplots=True, layout=(4, 2), figsize=(15, 10), sharex=False)
+#ax.invert_yaxis()
+fig = ax.get_figure()
+fig.savefig('../imagens/barh.png')

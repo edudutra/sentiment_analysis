@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 NEGATIVE_START = .0
 NEGATIVE_END = .25
 
-POSITIVE_START = .4
+POSITIVE_START = .5
 POSITIVE_END = .5
 
 #%% Load Files
